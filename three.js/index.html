@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Durham Castle Builder</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.164.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <div id="hud">
+      <div class="resource"><span>石材</span><span id="res-stone">0</span></div>
+      <div class="resource"><span>木材</span><span id="res-wood">0</span></div>
+      <div class="resource"><span>食物</span><span id="res-food">0</span></div>
+      <div class="resource"><span>金钱</span><span id="res-gold">0</span></div>
+      <div class="resource"><span>工匠</span><span id="res-workers">0</span></div>
+      <div class="resource"><span>速度</span><span id="game-speed">1x</span></div>
+    </div>
+    <div id="menu">
+      <button id="build-palace">建造宫殿地基</button>
+      <button id="build-castle">建造城堡地基</button>
+      <button id="build-library">建造图书馆地基</button>
+      <button id="build-farm">建造农田地基</button>
+      <button id="build-school">建造学校地基</button>
+      <button id="build-wall">建造城墙地基</button>
+      <button id="build-road">建造道路地基</button>
+      <button id="build-bridge">建造桥梁地基</button>
+      <button id="build-river">建造河流地基</button>
+      <div class="menu-section">
+        <div class="menu-title">空闲行为概率</div>
+        <label>休息
+          <input id="prob-rest" type="range" min="0" max="100" value="33">
+          <span id="prob-rest-val">33%</span>
+        </label>
+        <label>欢呼
+          <input id="prob-cheer" type="range" min="0" max="100" value="33">
+          <span id="prob-cheer-val">33%</span>
+        </label>
+        <label>闲逛
+          <input id="prob-wander" type="range" min="0" max="100" value="34">
+          <span id="prob-wander-val">34%</span>
+        </label>
+      </div>
+      <button id="spawn-worker">招募工匠</button>
+      <button id="speed-1">速度1x</button>
+      <button id="speed-2">速度2x</button>
+      <button id="speed-4">速度4x</button>
+    </div>
+    <div id="canvas-container"></div>
+    <div id="toast"></div>
+  </div>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
