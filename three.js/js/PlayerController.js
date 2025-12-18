@@ -10,6 +10,8 @@ export class PlayerController {
     this.player = game.createPlayerModel()
     this.player.position.set(0, 0.7, 0)
     this.scene.add(this.player)
+    this.cameraSys.setFollowPlayer(true)
+    this.cameraSys.setPlayerPosition(this.player.position)
     
     this.pet = null // 宠物对象
     
@@ -247,23 +249,8 @@ export class PlayerController {
       }
     }
 
-    // 根据玩家是否移动来决定相机行为
-    if (isMoving) {
-      // 玩家移动时，相机跟随玩家
-      this.cameraSys.setFollowPlayer(true)
-      this.cameraSys.setPlayerPosition(this.player.position)
-      
-      const controls = this.cameraSys.getControls()
-      const prevTarget = controls.target.clone()
-      const prevDist = cam.position.distanceTo(prevTarget)
-      const desiredTarget = new THREE.Vector3(this.player.position.x, this.player.position.y + 1.2, this.player.position.z)
-      controls.target.lerp(desiredTarget, 0.15)
-      const dir = cam.position.clone().sub(prevTarget).normalize()
-      cam.position.copy(controls.target).add(dir.multiplyScalar(prevDist))
-    } else {
-      // 玩家不移动时，允许相机使用方向键平移
-      this.cameraSys.setFollowPlayer(false)
-    }
+    // 相机始终跟随玩家位置（平移/缩放/旋转由 CameraSystem 统一处理）
+    this.cameraSys.setPlayerPosition(this.player.position)
   }
 
   getPlayer() {
@@ -276,4 +263,3 @@ export class PlayerController {
     this.playerPathIndex = 0
   }
 }
-

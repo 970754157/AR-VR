@@ -8,9 +8,13 @@ export class CameraSystem {
     this.controls.enableDamping = true
     // 禁用 OrbitControls 的键盘控制，避免与玩家 WASD 控制冲突
     this.controls.enableKeys = false
+    // 禁用 OrbitControls 的平移，改用方向键实现“按视角平移”，更可控
+    this.controls.enablePan = false
     
     // 相机平移速度
     this.panSpeed = 30
+    // 跟随平滑系数（越大越“紧”）
+    this.followLerp = 10
     // 键盘状态
     this.keys = {
       ArrowUp: false,
@@ -22,6 +26,15 @@ export class CameraSystem {
     this.followPlayer = true
     // 玩家位置（用于跟随）
     this.playerPosition = null
+    // 跟随时的目标偏移：方向键会改变它（屏幕空间上下左右）
+    this.followOffset = new THREE.Vector3(0, 0, 0)
+    this.playerTargetOffset = new THREE.Vector3(0, 1.2, 0)
+    this.maxFollowOffset = 200
+    this._tmpRight = new THREE.Vector3()
+    this._tmpUp = new THREE.Vector3()
+    this._tmpDesiredTarget = new THREE.Vector3()
+    this._tmpNewTarget = new THREE.Vector3()
+    this._tmpDelta = new THREE.Vector3()
     
     // 监听键盘事件
     this.setupKeyboardControls()
@@ -41,6 +54,50 @@ export class CameraSystem {
    */
   setPlayerPosition(position) {
     this.playerPosition = position
+  }
+
+  _applyArrowPan(dt = 0.016) {
+    const x = (this.keys.ArrowRight ? 1 : 0) - (this.keys.ArrowLeft ? 1 : 0)
+    const y = (this.keys.ArrowUp ? 1 : 0) - (this.keys.ArrowDown ? 1 : 0)
+    if (x === 0 && y === 0) return
+    
+    const dist = this.camera.position.distanceTo(this.controls.target)
+    const speed = this.panSpeed * (0.6 + Math.min(2.2, dist / 60))
+    
+    this._tmpRight.set(1, 0, 0).applyQuaternion(this.camera.quaternion).normalize()
+    this._tmpUp.set(0, 1, 0).applyQuaternion(this.camera.quaternion).normalize()
+    
+    this._tmpDelta
+      .set(0, 0, 0)
+      .addScaledVector(this._tmpRight, x * speed * dt)
+      .addScaledVector(this._tmpUp, y * speed * dt)
+    
+    if (this.followPlayer) {
+      this.followOffset.add(this._tmpDelta)
+      if (this.followOffset.length() > this.maxFollowOffset) {
+        this.followOffset.setLength(this.maxFollowOffset)
+      }
+      return
+    }
+    
+    // 非跟随模式：直接移动相机与 target（保持相对关系不变）
+    this.camera.position.add(this._tmpDelta)
+    this.controls.target.add(this._tmpDelta)
+  }
+  
+  _updateFollow(dt = 0.016) {
+    if (!this.followPlayer) return
+    if (!this.playerPosition) return
+    
+    this._tmpDesiredTarget.copy(this.playerPosition).add(this.playerTargetOffset).add(this.followOffset)
+    
+    // 平滑把 OrbitControls 的 target 拉向期望 target，并让相机位置跟随同样的 delta
+    const t = Math.min(1, dt * this.followLerp)
+    this._tmpNewTarget.copy(this.controls.target).lerp(this._tmpDesiredTarget, t)
+    this._tmpDelta.copy(this._tmpNewTarget).sub(this.controls.target)
+    
+    this.controls.target.add(this._tmpDelta)
+    this.camera.position.add(this._tmpDelta)
   }
   
   setupKeyboardControls() {
@@ -78,51 +135,8 @@ export class CameraSystem {
   }
   
   update(dt = 0.016) {
-    // 如果跟随玩家，不处理方向键平移（由PlayerController处理相机跟随）
-    if (!this.followPlayer) {
-      // 处理相机平移（仅在玩家不移动时）
-      if (this.keys.ArrowUp || this.keys.ArrowDown || this.keys.ArrowLeft || this.keys.ArrowRight) {
-        // 获取相机的朝向（前方向量），投影到水平面
-        const forward = new THREE.Vector3()
-        this.camera.getWorldDirection(forward)
-        forward.y = 0  // 只在水平面移动
-        forward.normalize()
-        
-        // 获取相机的右方向量（水平面）
-        const right = new THREE.Vector3()
-        right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize()
-        
-        // 计算平移向量（只在水平面XZ平面上）
-        const panVector = new THREE.Vector3(0, 0, 0)
-        
-        if (this.keys.ArrowUp) {
-          // 上键：在水平面上向前移动（沿相机朝向在水平面的投影）
-          panVector.add(forward.clone().multiplyScalar(this.panSpeed * dt))
-        }
-        if (this.keys.ArrowDown) {
-          // 下键：在水平面上向后移动
-          panVector.add(forward.clone().multiplyScalar(-this.panSpeed * dt))
-        }
-        if (this.keys.ArrowLeft) {
-          // 左键：在水平面上向左移动
-          panVector.add(right.clone().multiplyScalar(-this.panSpeed * dt))
-        }
-        if (this.keys.ArrowRight) {
-          // 右键：在水平面上向右移动
-          panVector.add(right.clone().multiplyScalar(this.panSpeed * dt))
-        }
-        
-        // 确保只在水平面平移（Y轴不变）
-        panVector.y = 0
-        
-        // 应用平移
-        if (panVector.lengthSq() > 0) {
-          this.camera.position.add(panVector)
-          this.controls.target.add(panVector)
-        }
-      }
-    }
-    
+    this._applyArrowPan(dt)
+    this._updateFollow(dt)
     this.controls.update()
   }
   
