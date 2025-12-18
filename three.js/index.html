@@ -16,45 +16,95 @@
 <body>
   <div id="app">
     <div id="hud">
-      <div class="resource"><span>石材</span><span id="res-stone">0</span></div>
-      <div class="resource"><span>木材</span><span id="res-wood">0</span></div>
-      <div class="resource"><span>食物</span><span id="res-food">0</span></div>
-      <div class="resource"><span>金钱</span><span id="res-gold">0</span></div>
-      <div class="resource"><span>工匠</span><span id="res-workers">0</span></div>
-      <div class="resource"><span>速度</span><span id="game-speed">1x</span></div>
+      <div class="resource"><span class="icon">👤</span><span>玩家</span><span id="player-name">未命名</span></div>
+      <div class="resource"><span class="icon">🪨</span><span>石材</span><span id="res-stone">0</span></div>
+      <div class="resource"><span class="icon">🪵</span><span>木材</span><span id="res-wood">0</span></div>
+      <div class="resource"><span class="icon">🍎</span><span>食物</span><span id="res-food">0</span></div>
+      <div class="resource"><span class="icon">💰</span><span>金钱</span><span id="res-gold">0</span></div>
+      <div class="resource"><span class="icon">👷</span><span>工匠</span><span id="res-workers">0</span></div>
+      <div class="resource"><span class="icon">⚡</span><span>速度</span><span id="game-speed">1x</span></div>
+      <div class="resource"><span class="icon">⭐</span><span>等级</span><span id="player-level">1</span></div>
+      <div class="resource exp-resource">
+        <span class="icon">✨</span><span>经验</span>
+        <div class="exp-container">
+          <div class="exp-bar">
+            <div class="exp-bar-fill" id="exp-bar-fill"></div>
+          </div>
+          <span class="exp-text" id="player-exp">0/10</span>
+        </div>
+      </div>
     </div>
     <div id="menu">
-      <button id="build-palace">建造宫殿地基</button>
-      <button id="build-castle">建造城堡地基</button>
-      <button id="build-library">建造图书馆地基</button>
-      <button id="build-farm">建造农田地基</button>
-      <button id="build-school">建造学校地基</button>
-      <button id="build-wall">建造城墙地基</button>
-      <button id="build-road">建造道路地基</button>
-      <button id="build-bridge">建造桥梁地基</button>
-      <button id="build-river">建造河流地基</button>
+      <button id="theme-toggle">🌙 切换为夜间模式</button>
+      
+      <!-- 翻页按钮 -->
+      <div class="page-tabs">
+        <button class="page-tab active" data-page="buildings">🏗️ 建筑</button>
+        <button class="page-tab" data-page="crops">🌾 农作物</button>
+        <button class="page-tab" data-page="animals">🐾 动物</button>
+      </div>
+      
+      <!-- 建筑页面 -->
+      <div class="page-content active" data-page="buildings">
+        <button id="build-farm">🌾 建造农田地基</button>
+        <button id="build-school">🏫 建造学校地基</button>
+        <button id="build-library">📚 建造图书馆地基</button>
+        <button id="build-wall">🧱 建造城墙地基</button>
+        <button id="build-road">🛣️ 建造道路地基</button>
+        <button id="build-river">🌊 建造河流地基</button>
+        <button id="build-castle">🏰 建造城堡地基</button>
+      </div>
+      
+      <!-- 农作物页面 -->
+      <div class="page-content" data-page="crops">
+        <button id="plant-carrot">🥕 种植胡萝卜</button>
+        <button id="plant-watermelon">🍉 种植西瓜</button>
+        <button id="plant-grape">🍇 种植葡萄</button>
+      </div>
+      
+      <!-- 动物页面 -->
+      <div class="page-content" data-page="animals">
+        <button id="spawn-sheep">🐑 放置小羊</button>
+        <button id="spawn-pig">🐷 放置小猪</button>
+        <button id="spawn-cow">🐄 放置小牛</button>
+      </div>
+      
       <div class="menu-section">
-        <div class="menu-title">空闲行为概率</div>
-        <label>休息
+        <div class="menu-title">🎭 空闲行为概率</div>
+        <label>😴 休息
           <input id="prob-rest" type="range" min="0" max="100" value="33">
           <span id="prob-rest-val">33%</span>
         </label>
-        <label>欢呼
+        <label>🎉 欢呼
           <input id="prob-cheer" type="range" min="0" max="100" value="33">
           <span id="prob-cheer-val">33%</span>
         </label>
-        <label>闲逛
+        <label>🚶 闲逛
           <input id="prob-wander" type="range" min="0" max="100" value="34">
           <span id="prob-wander-val">34%</span>
         </label>
       </div>
-      <button id="spawn-worker">招募工匠</button>
-      <button id="speed-1">速度1x</button>
-      <button id="speed-2">速度2x</button>
-      <button id="speed-4">速度4x</button>
+      <button id="spawn-worker">👷 招募工匠</button>
+      <button id="claim-resources">📦 领取材料</button>
+      <button id="demolish-building">🗑️ 删除建筑</button>
+      <button id="speed-1">⚡ 速度1x</button>
+      <button id="speed-2">⚡⚡ 速度2x</button>
+      <button id="speed-4">⚡⚡⚡ 速度4x</button>
     </div>
     <div id="canvas-container"></div>
     <div id="toast"></div>
+    
+    <!-- 游戏提示语遮罩层 -->
+    <div id="tutorial-overlay" class="tutorial-overlay">
+      <div class="tutorial-content">
+        <div class="tutorial-text" id="tutorial-text"></div>
+        <div class="tutorial-input-container" id="tutorial-input-container" style="display: none;">
+          <input type="text" id="player-name-input" placeholder="请输入你的名字" maxlength="20">
+          <button id="confirm-name">确认</button>
+        </div>
+        <div class="tutorial-hint" id="tutorial-hint">点击任意位置继续...</div>
+      </div>
+    </div>
   </div>
   <script type="module" src="./js/main.js"></script>
 </body>

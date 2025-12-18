@@ -1,9 +1,9 @@
 {
   "initialResources": {
-    "stone": 120,
-    "wood": 80,
-    "food": 60,
-    "gold": 40,
+    "stone": 1000,
+    "wood": 1000,
+    "food": 1000,
+    "gold": 1000,
     "workers": 0
   }
 }

@@ -9,7 +9,6 @@ export class Renderer {
     this.renderer.physicallyCorrectLights = true
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.renderer.setSize(container.clientWidth, container.clientHeight)
-    this.renderer.shadowMap.enabled = true
     container.appendChild(this.renderer.domElement)
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color(0x91c5ff)

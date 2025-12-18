@@ -1,63 +1,202 @@
-import { Renderer } from './graphics/Renderer.js'
-import { CameraSystem } from './graphics/Camera.js'
-import { setupLighting } from './graphics/Lighting.js'
-import { UI } from './ui/UI.js'
-import { Game } from './core/Game.js'
-import * as THREE from 'three'
+import { GameInitializer } from './GameInitializer.js'
+import { Tutorial } from './Tutorial.js'
+import { PlayerController } from './PlayerController.js'
+import { InputHandler } from './InputHandler.js'
+
 const container = document.getElementById('canvas-container')
-const renderer = new Renderer(container)
-const cameraSys = new CameraSystem(container)
-setupLighting(renderer.getScene())
-let config = { initialResources: { stone: 50, wood: 40, food: 30, gold: 20, workers: 0 } }
-try {
-  const resp = await fetch('./game.json')
-  if (resp.ok) config = await resp.json()
-} catch {}
-const game = new Game(renderer.getScene(), config, cameraSys.getCamera(), (msg) => ui.toast(msg))
-const ui = new UI(document)
+const initializer = new GameInitializer(container)
+const { game, ui } = await initializer.initializeGame()
+initializer.setUI(ui)
+
+const tutorial = new Tutorial(game, ui)
+
+// 设置升级回调
+game.onLevelUp = () => {
+  ui.updateBuildingButtons(game.state.getUnlockedBuildings(), game.state.playerLevel, (type) => game.state.getBuildingRequiredLevel(type))
+  ui.updateCropButtons(game.state.getUnlockedCrops(), game.state.playerLevel, (type) => game.state.getCropRequiredLevel(type))
+  ui.updateAnimalButtons(game.state.getUnlockedAnimals(), game.state.playerLevel, (type) => game.state.getAnimalRequiredLevel(type))
+}
+
+// UI绑定
 ui.bind({
-  onBuildPalace: () => { game.state.pendingBuild = true; game.state.pendingType = 'palace'; ui.toast('宫殿地基：石材30 木材10 金币20，点击地面放置') },
-  onBuildCastle: () => { game.state.pendingBuild = true; game.state.pendingType = 'castle'; ui.toast('城堡地基：石材50 木材25 金币60，点击地面放置') },
-  onBuildLibrary: () => { game.state.pendingBuild = true; game.state.pendingType = 'library'; ui.toast('图书馆地基：石材40 木材20 金币50，点击地面放置') },
-  onBuildFarm: () => { game.state.pendingBuild = true; game.state.pendingType = 'farm'; ui.toast('农田地基：石材10 木材5 金币10，点击地面放置') },
-  onBuildSchool: () => { game.state.pendingBuild = true; game.state.pendingType = 'school'; ui.toast('学校地基：石材35 木材25 金币45，点击地面放置') },
-  onBuildWall: () => { game.state.pendingBuild = true; game.state.pendingType = 'wall'; ui.toast('城墙地基：石材60 木材15 金币30，点击地面放置') },
-  onBuildRoad: () => { game.state.pendingBuild = true; game.state.pendingType = 'road'; ui.toast('道路地基：石材20 木材5 金币15，点击地面放置') },
-  onBuildBridge: () => { game.state.pendingBuild = true; game.state.pendingType = 'bridge'; ui.toast('桥梁地基：石材55 木材35 金币80，点击地面放置') },
-  onBuildRiver: () => { game.state.pendingBuild = true; game.state.pendingType = 'river'; ui.toast('河流地基：石材0 木材0 金币0，点击地面放置') },
+  onBuildCastle: () => {
+    if (!game.state.isBuildingUnlocked('castle')) {
+      const requiredLevel = game.state.getBuildingRequiredLevel('castle')
+      ui.toast(`城堡需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    game.state.pendingBuild = true; game.state.pendingType = 'castle'; ui.toast('城堡地基：食物50 木材25，点击地面放置')
+  },
+  onBuildLibrary: () => {
+    if (!game.state.isBuildingUnlocked('library')) {
+      const requiredLevel = game.state.getBuildingRequiredLevel('library')
+      ui.toast(`图书馆需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    game.state.pendingBuild = true; game.state.pendingType = 'library'; ui.toast('图书馆地基：食物40 木材20，点击地面放置')
+  },
+  onBuildFarm: () => {
+    if (!game.state.isBuildingUnlocked('farm')) {
+      const requiredLevel = game.state.getBuildingRequiredLevel('farm')
+      ui.toast(`农田需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    game.state.pendingBuild = true; game.state.pendingType = 'farm'; ui.toast('农田地基：食物10 木材5，点击地面放置')
+  },
+  onBuildSchool: () => {
+    if (!game.state.isBuildingUnlocked('school')) {
+      const requiredLevel = game.state.getBuildingRequiredLevel('school')
+      ui.toast(`学校需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    game.state.pendingBuild = true; game.state.pendingType = 'school'; ui.toast('学校地基：食物35 木材25，点击地面放置')
+  },
+  onBuildWall: () => {
+    if (!game.state.isBuildingUnlocked('wall')) {
+      const requiredLevel = game.state.getBuildingRequiredLevel('wall')
+      ui.toast(`城墙需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    game.state.pendingBuild = true; game.state.pendingType = 'wall'; ui.toast('城墙地基：食物60 木材15，点击地面放置')
+  },
+  onBuildRoad: () => {
+    if (!game.state.isBuildingUnlocked('road')) {
+      const requiredLevel = game.state.getBuildingRequiredLevel('road')
+      ui.toast(`道路需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    game.state.pendingBuild = true; game.state.pendingType = 'road'; ui.toast('道路地基：食物20 木材5，点击地面放置')
+  },
+  onBuildRiver: () => {
+    if (!game.state.isBuildingUnlocked('river')) {
+      const requiredLevel = game.state.getBuildingRequiredLevel('river')
+      ui.toast(`河流需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    game.state.pendingBuild = true; game.state.pendingType = 'river'; ui.toast('河流地基：食物0 木材0，点击地面放置')
+  },
+  onPlantCarrot: () => {
+    if (!game.state.isCropUnlocked('carrot')) {
+      const requiredLevel = game.state.getCropRequiredLevel('carrot')
+      ui.toast(`胡萝卜需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    game.state.pendingPlant = true; game.state.pendingCropType = 'carrot'; ui.toast('选择农田种植胡萝卜')
+  },
+  onPlantWatermelon: () => {
+    if (!game.state.isCropUnlocked('watermelon')) {
+      const requiredLevel = game.state.getCropRequiredLevel('watermelon')
+      ui.toast(`西瓜需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    game.state.pendingPlant = true; game.state.pendingCropType = 'watermelon'; ui.toast('选择农田种植西瓜')
+  },
+  onPlantGrape: () => {
+    if (!game.state.isCropUnlocked('grape')) {
+      const requiredLevel = game.state.getCropRequiredLevel('grape')
+      ui.toast(`葡萄需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    game.state.pendingPlant = true; game.state.pendingCropType = 'grape'; ui.toast('选择农田种植葡萄')
+  },
+  onSpawnSheep: () => {
+    if (!game.state.isAnimalUnlocked('sheep')) {
+      const requiredLevel = game.state.getAnimalRequiredLevel('sheep')
+      ui.toast(`小羊需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    // 如果已经是放置小羊模式，则取消；否则进入连续放置模式
+    if (game.state.pendingSpawnAnimal && game.state.pendingAnimalType === 'sheep') {
+      game.state.pendingSpawnAnimal = false
+      ui.toast('已取消放置小羊模式')
+    } else {
+      game.state.pendingSpawnAnimal = true
+      game.state.pendingAnimalType = 'sheep'
+      ui.toast('连续放置模式：点击地面放置小羊，再次点击按钮取消')
+    }
+  },
+  onSpawnPig: () => {
+    if (!game.state.isAnimalUnlocked('pig')) {
+      const requiredLevel = game.state.getAnimalRequiredLevel('pig')
+      ui.toast(`小猪需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    // 如果已经是放置小猪模式，则取消；否则进入连续放置模式
+    if (game.state.pendingSpawnAnimal && game.state.pendingAnimalType === 'pig') {
+      game.state.pendingSpawnAnimal = false
+      ui.toast('已取消放置小猪模式')
+    } else {
+      game.state.pendingSpawnAnimal = true
+      game.state.pendingAnimalType = 'pig'
+      ui.toast('连续放置模式：点击地面放置小猪，再次点击按钮取消')
+    }
+  },
+  onSpawnCow: () => {
+    if (!game.state.isAnimalUnlocked('cow')) {
+      const requiredLevel = game.state.getAnimalRequiredLevel('cow')
+      ui.toast(`小牛需要等级 ${requiredLevel} 才能解锁（当前等级：${game.state.playerLevel}）`)
+      return
+    }
+    // 如果已经是放置小牛模式，则取消；否则进入连续放置模式
+    if (game.state.pendingSpawnAnimal && game.state.pendingAnimalType === 'cow') {
+      game.state.pendingSpawnAnimal = false
+      ui.toast('已取消放置小牛模式')
+    } else {
+      game.state.pendingSpawnAnimal = true
+      game.state.pendingAnimalType = 'cow'
+      ui.toast('连续放置模式：点击地面放置小牛，再次点击按钮取消')
+    }
+  },
   onSpawn: () => game.spawnWorker(),
+  onClaimResources: () => {
+    game.state.resources.add({ stone: 1000, wood: 1000, food: 1000, gold: 1000 })
+    ui.toast('领取成功：获得石材、木材、食物、金钱各1000')
+  },
+  onDemolish: () => {
+    if (game.state.pendingDemolish) {
+      game.state.pendingDemolish = false
+      ui.toast('已取消删除模式')
+    } else {
+      game.state.pendingDemolish = true
+      game.state.pendingBuild = false
+      ui.toast('删除模式：点击要删除的建筑')
+    }
+  },
   onSpeed: (s) => game.state.setSpeed(s),
   onBehaviorProbChange: (weights) => { 
     game.state.setIdleWeights(weights)
     game.updateWorkersIdleWeights()
   }
 })
-const raycaster = new THREE.Raycaster()
-function onPointerDown(e) {
-  if (!game.state.pendingBuild) return
-  const rect = container.getBoundingClientRect()
-  const x = ((e.clientX - rect.left) / rect.width) * 2 - 1
-  const y = -((e.clientY - rect.top) / rect.height) * 2 + 1
-  raycaster.setFromCamera({ x, y }, cameraSys.getCamera())
-  const inter = raycaster.intersectObject(game.ground, false)[0]
-  if (inter && inter.point) {
-    const ok = game.addFoundationAt(inter.point, game.state.pendingType)
-    if (ok) { ui.toast('已安置地基'); game.state.pendingBuild = false }
-    else { ui.toast('资源不足') }
-  }
-}
-container.addEventListener('pointerdown', onPointerDown)
+
+const playerController = new PlayerController(game, initializer.getCameraSys(), initializer.getScene())
+const inputHandler = new InputHandler(game, ui, playerController, container, initializer.getCameraSys())
+
 let last = performance.now()
 function loop() {
   const now = performance.now()
   const dt = Math.min(0.05, (now - last) / 1000)
   last = now
+  
+  initializer.syncLightingWithBodyTheme()
+  
+  if (tutorial.isCompleted()) {
+    playerController.update(dt, true)
+  }
+  
   game.update(dt)
   ui.update(game.state)
-  cameraSys.update()
-  cameraSys.resize(container)
-  renderer.getRenderer().render(renderer.getScene(), cameraSys.getCamera())
+  
+  if (!ui._buttonsInitialized) {
+    ui.updateBuildingButtons(game.state.getUnlockedBuildings(), game.state.playerLevel, (type) => game.state.getBuildingRequiredLevel(type))
+    ui._buttonsInitialized = true
+  }
+  
+  initializer.getCameraSys().update(dt)
+  initializer.getCameraSys().resize(container)
+  initializer.getRenderer().getRenderer().render(initializer.getScene(), initializer.getCameraSys().getCamera())
   if (Math.random() < 0.02) game.assignWork()
   requestAnimationFrame(loop)
 }
 loop()
+
