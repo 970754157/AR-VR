@@ -1,3 +1,4 @@
+import { t } from '../i18n.js'
 export class Menu {
   constructor(root) {
     this.root = root
@@ -47,7 +48,8 @@ export class Menu {
       const applyTheme = () => {
         doc.body.classList.toggle('theme-dark', isDark)
         if (this.btnTheme) {
-          this.btnTheme.textContent = isDark ? '切换为白天模式' : '切换为夜间模式'
+          const icon = isDark ? '☀️ ' : '🌙 '
+          this.btnTheme.textContent = icon + (isDark ? t('menu.theme.toLight') : t('menu.theme.toDark'))
         }
         if (win && win.localStorage) {
           win.localStorage.setItem('theme', isDark ? 'dark' : 'light')
@@ -58,6 +60,8 @@ export class Menu {
         applyTheme()
       })
       applyTheme()
+      
+      window.addEventListener('i18n:change', () => applyTheme())
     }
   }
   

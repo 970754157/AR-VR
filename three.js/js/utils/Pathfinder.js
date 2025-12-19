@@ -1,4 +1,4 @@
-import * as THREE from 'https://unpkg.com/three@0.164.0/build/three.module.js'
+import * as THREE from 'three'
 
 /**
  * A* 寻路算法类
@@ -34,18 +34,47 @@ export class Pathfinder {
    */
   async _initPathfinding() {
     // 使用 CDN 加载 pathfinding 库
+    // 说明：pathfinding-browser.min.js 是 UMD 脚本，不是 ES Module；
+    // 在主线程里需要用 <script> 注入来获得全局 PF。
     if (typeof self !== 'undefined' && self.importScripts) {
       // 在 Web Worker 环境中
       importScripts('https://cdn.jsdelivr.net/npm/pathfinding@0.4.18/pathfinding-browser.min.js')
       this.PF = self.PF
     } else {
-      // 在主线程中，尝试动态导入
+      // 在主线程中，注入脚本并读取全局 PF
       try {
-        const PFModule = await import('https://cdn.jsdelivr.net/npm/pathfinding@0.4.18/pathfinding-browser.min.js')
-        this.PF = PFModule.default || PFModule
+        await new Promise((resolve, reject) => {
+          if (typeof document === 'undefined') {
+            reject(new Error('document is not available'))
+            return
+          }
+
+          if (typeof window !== 'undefined' && window.PF) {
+            resolve()
+            return
+          }
+
+          const existing = document.querySelector('script[data-pf="pathfinding"]')
+          if (existing) {
+            existing.addEventListener('load', () => resolve(), { once: true })
+            existing.addEventListener('error', () => reject(new Error('Failed to load pathfinding script')), { once: true })
+            return
+          }
+
+          const script = document.createElement('script')
+          script.dataset.pf = 'pathfinding'
+          script.async = true
+          script.src = 'https://cdn.jsdelivr.net/npm/pathfinding@0.4.18/pathfinding-browser.min.js'
+          script.onload = () => resolve()
+          script.onerror = () => reject(new Error('Failed to load pathfinding script'))
+          document.head.appendChild(script)
+        })
+        this.PF = (typeof window !== 'undefined' && window.PF) ? window.PF : null
       } catch (e) {
-        // 如果动态导入失败，尝试使用全局变量
-        if (typeof PF !== 'undefined') {
+        // 如果加载失败，尝试使用全局变量
+        if (typeof window !== 'undefined' && window.PF) {
+          this.PF = window.PF
+        } else if (typeof PF !== 'undefined') {
           this.PF = PF
         } else {
           console.error('Pathfinding library not found. Please include pathfinding-browser.min.js')

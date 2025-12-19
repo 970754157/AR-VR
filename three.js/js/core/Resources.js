@@ -1,4 +1,5 @@
 import * as THREE from 'https://unpkg.com/three@0.164.0/build/three.module.js'
+import { t } from '../i18n.js'
 
 // 资源采集相关功能（树木、石头、金矿）
 export class Resources {
@@ -102,7 +103,7 @@ export class Resources {
     
     const leveledUp = this.game.state.addPlayerExp(this.game.state.getExpReward())
     if (leveledUp) {
-      this.game.notify(`玩家升级到 ${this.game.state.playerLevel} 级！解锁新建筑！`)
+      this.game.notify(t('msg.levelUp', { level: this.game.state.playerLevel }))
       if (this.game.onLevelUp) this.game.onLevelUp()
     }
     
@@ -286,7 +287,7 @@ export class Resources {
     
     const leveledUp = this.game.state.addPlayerExp(this.game.state.getExpReward())
     if (leveledUp) {
-      this.game.notify(`玩家升级到 ${this.game.state.playerLevel} 级！解锁新建筑！`)
+      this.game.notify(t('msg.levelUp', { level: this.game.state.playerLevel }))
       if (this.game.onLevelUp) this.game.onLevelUp()
     }
     
@@ -478,7 +479,7 @@ export class Resources {
     
     const leveledUp = this.game.state.addPlayerExp(this.game.state.getExpReward())
     if (leveledUp) {
-      this.game.notify(`玩家升级到 ${this.game.state.playerLevel} 级！解锁新建筑！`)
+      this.game.notify(t('msg.levelUp', { level: this.game.state.playerLevel }))
       if (this.game.onLevelUp) this.game.onLevelUp()
     }
     

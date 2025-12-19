@@ -1,5 +1,6 @@
 import { HUD } from './HUD.js'
 import { Menu } from './Menu.js'
+import { t } from '../i18n.js'
 export class UI {
   constructor(doc) {
     this.hud = new HUD(doc.querySelector('#hud'))
@@ -28,7 +29,7 @@ export class UI {
   }
   update(state) {
     const expRequired = state.getExpRequired ? state.getExpRequired() : 10
-    this.hud.update(state.resources, state.speed, state.playerLevel || 1, state.playerExp || 0, expRequired, state.playerName || '未命名')
+    this.hud.update(state.resources, state.speed, state.playerLevel || 1, state.playerExp || 0, expRequired, state.playerName || t('hud.unnamed'))
   }
   // 更新建筑按钮的解锁状态
   updateBuildingButtons(unlockedBuildings, playerLevel = 1, getRequiredLevel = null) {
@@ -42,16 +43,6 @@ export class UI {
       'river': this.menu.btnRiver
     }
     
-    const buildingNames = {
-      'farm': '农田',
-      'school': '学校',
-      'library': '图书馆',
-      'castle': '城堡',
-      'wall': '城墙',
-      'road': '道路',
-      'river': '河流'
-    }
-    
     for (const [buildingType, button] of Object.entries(buttonMap)) {
       if (button) {
         const isUnlocked = unlockedBuildings.includes(buildingType)
@@ -62,16 +53,16 @@ export class UI {
         // 添加提示语（无论是否解锁都显示）
         if (getRequiredLevel) {
           const requiredLevel = getRequiredLevel(buildingType)
-          const buildingName = buildingNames[buildingType] || buildingType
           if (!isUnlocked) {
-            button.title = `${buildingName}需要等级 ${requiredLevel} 才能解锁（当前等级：${playerLevel}）`
+            const buildingName = t(`building.${buildingType}`) || buildingType
+            button.title = t('msg.needLevel', { name: buildingName, required: requiredLevel, current: playerLevel })
           } else {
             button.title = '' // 解锁后清除提示
           }
         } else {
           if (!isUnlocked) {
-            const buildingName = buildingNames[buildingType] || buildingType
-            button.title = `${buildingName}需要更高的等级才能解锁`
+            const buildingName = t(`building.${buildingType}`) || buildingType
+            button.title = t('msg.needHigherLevel', { name: buildingName })
           } else {
             button.title = ''
           }
@@ -88,12 +79,6 @@ export class UI {
       'grape': this.menu.btnPlantGrape
     }
     
-    const cropNames = {
-      'carrot': '胡萝卜',
-      'watermelon': '西瓜',
-      'grape': '葡萄'
-    }
-    
     for (const [cropType, button] of Object.entries(buttonMap)) {
       if (button) {
         const isUnlocked = unlockedCrops.includes(cropType)
@@ -103,16 +88,16 @@ export class UI {
         button.style.cursor = 'pointer'
         if (getCropRequiredLevel) {
           const requiredLevel = getCropRequiredLevel(cropType)
-          const cropName = cropNames[cropType] || cropType
           if (!isUnlocked) {
-            button.title = `${cropName}需要等级 ${requiredLevel} 才能解锁（当前等级：${playerLevel}）`
+            const cropName = t(`crop.${cropType}`) || cropType
+            button.title = t('msg.needLevel', { name: cropName, required: requiredLevel, current: playerLevel })
           } else {
             button.title = ''
           }
         } else {
           if (!isUnlocked) {
-            const cropName = cropNames[cropType] || cropType
-            button.title = `${cropName}需要更高的等级才能解锁`
+            const cropName = t(`crop.${cropType}`) || cropType
+            button.title = t('msg.needHigherLevel', { name: cropName })
           } else {
             button.title = ''
           }
@@ -129,12 +114,6 @@ export class UI {
       'cow': this.menu.btnSpawnCow
     }
     
-    const animalNames = {
-      'sheep': '小羊',
-      'pig': '小猪',
-      'cow': '小牛'
-    }
-    
     for (const [animalType, button] of Object.entries(buttonMap)) {
       if (button) {
         const isUnlocked = unlockedAnimals.includes(animalType)
@@ -144,16 +123,16 @@ export class UI {
         button.style.cursor = 'pointer'
         if (getAnimalRequiredLevel) {
           const requiredLevel = getAnimalRequiredLevel(animalType)
-          const animalName = animalNames[animalType] || animalType
           if (!isUnlocked) {
-            button.title = `${animalName}需要等级 ${requiredLevel} 才能解锁（当前等级：${playerLevel}）`
+            const animalName = t(`animal.${animalType}`) || animalType
+            button.title = t('msg.needLevel', { name: animalName, required: requiredLevel, current: playerLevel })
           } else {
             button.title = ''
           }
         } else {
           if (!isUnlocked) {
-            const animalName = animalNames[animalType] || animalType
-            button.title = `${animalName}需要更高的等级才能解锁`
+            const animalName = t(`animal.${animalType}`) || animalType
+            button.title = t('msg.needHigherLevel', { name: animalName })
           } else {
             button.title = ''
           }

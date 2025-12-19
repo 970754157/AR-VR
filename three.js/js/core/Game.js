@@ -1,6 +1,7 @@
 import * as THREE from 'https://unpkg.com/three@0.164.0/build/three.module.js'
 import { GameState } from './GameState.js'
 import { AIManager } from './AI.js'
+import { t } from '../i18n.js'
 
 /**
  * 角度插值函数，使旋转更自然
@@ -258,9 +259,9 @@ export class Game {
               }
               if (refund.food > 0 || refund.wood > 0) {
                 this.state.resources.add(refund)
-                this.notify(`建筑已拆除，返还材料：食物${refund.food} 木材${refund.wood}`)
+    this.notify(t('msg.demolishedRefund', { food: refund.food, wood: refund.wood }))
               } else {
-                this.notify('建筑已拆除')
+    this.notify(t('msg.demolished'))
               }
               this.scene.remove(structure.mesh)
               if (structure.type === 'farm' && structure.mesh.userData.crops) {
@@ -302,36 +303,36 @@ export class Game {
                 if (w.hp != null && w.hp <= 0) {
                   w.targetStructure = null
                   w.demolishing = false
-                  this.notify('工人因过度劳累而死亡')
+                   this.notify(t('msg.workerDied'))
                   if (w) this.killWorker(w)
                   continue
                 }
                 
                 if (foundation.progress >= 1 && !foundation.completed) {
                   foundation.completed = true
-                  this.notify('地基建造完成')
+                  this.notify(t('msg.foundationComplete'))
                   let building
-                  const t = foundation.forType || 'castle'
-                  if (t === 'castle') building = this.createCastleVariant(foundation.mesh.position)
-                  else if (t === 'library') building = this.createLibraryVariant(foundation.mesh.position)
-                  else if (t === 'farm') building = this.createFarmVariant(foundation.mesh.position)
-                  else if (t === 'school') building = this.createSchoolVariant(foundation.mesh.position)
-                  else if (t === 'wall') building = this.createWallVariant(foundation.mesh.position)
-                  else if (t === 'road') building = this.createRoadVariant(foundation.mesh.position)
-                  else if (t === 'river') building = this.createRiverVariant(foundation.mesh.position)
+                  const buildType = foundation.forType || 'castle'
+                  if (buildType === 'castle') building = this.createCastleVariant(foundation.mesh.position)
+                  else if (buildType === 'library') building = this.createLibraryVariant(foundation.mesh.position)
+                  else if (buildType === 'farm') building = this.createFarmVariant(foundation.mesh.position)
+                  else if (buildType === 'school') building = this.createSchoolVariant(foundation.mesh.position)
+                  else if (buildType === 'wall') building = this.createWallVariant(foundation.mesh.position)
+                  else if (buildType === 'road') building = this.createRoadVariant(foundation.mesh.position)
+                  else if (buildType === 'river') building = this.createRiverVariant(foundation.mesh.position)
                   else building = this.createCastleVariant(foundation.mesh.position)
                   this.scene.add(building)
                   building.visible = true
-                  this.state.addStructure({ type: t, mesh: building })
-                  const msgMap = { castle: '城堡已展示', library: '图书馆已展示', farm: '农田已展示', school: '学校已展示', wall: '城墙已展示', road: '道路已展示', river: '河流已展示' }
-                  this.notify(msgMap[t] || '建筑已展示')
+                  this.state.addStructure({ type: buildType, mesh: building })
+                  const name = t(`building.${buildType}`) || buildType
+                  this.notify(t('msg.buildingShown', { name }))
                   this.scene.remove(foundation.mesh)
                   const idx = this.state.structures.indexOf(foundation)
                   if (idx >= 0) this.state.structures.splice(idx, 1)
                   
                   const leveledUp = this.state.addPlayerExp(this.state.getExpReward())
                   if (leveledUp) {
-                    this.notify(`玩家升级到 ${this.state.playerLevel} 级！解锁新建筑！`)
+                    this.notify(t('msg.levelUp', { level: this.state.playerLevel }))
                     if (this.onLevelUp) this.onLevelUp()
                   }
                   
@@ -360,7 +361,7 @@ export class Game {
                   } else {
                     w.targetStructure = null
                     w.demolishing = false
-                    this.notify('工人因过度劳累而死亡')
+                     this.notify(t('msg.workerDied'))
                     if (w) this.killWorker(w)
                     continue
                   }
@@ -729,4 +730,3 @@ export class Game {
     this.evacuation.update(dt)
   }
 }
-

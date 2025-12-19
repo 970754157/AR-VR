@@ -1,6 +1,128 @@
 * { box-sizing: border-box }
+:root { --sidebar-width: 240px; --hud-height: 56px }
 html, body { margin: 0; height: 100%; background: #a9c9ff; color: #0f1a2b; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; transition: background .25s ease, color .25s ease }
 #app { height: 100% }
+.hidden { display: none !important }
+
+/* 游戏未开始时隐藏游戏UI */
+body:not(.game-started) #hud,
+body:not(.game-started) #menu,
+body:not(.game-started) #canvas-container,
+body:not(.game-started) #toast,
+body:not(.game-started) #tutorial-overlay {
+  display: none !important;
+}
+
+/* 主菜单与设置层 */
+.main-menu-overlay,
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000;
+  background: radial-gradient(circle at top, rgba(255,255,255,.85), rgba(15,26,43,.55));
+  backdrop-filter: blur(8px);
+}
+
+body.theme-dark .main-menu-overlay,
+body.theme-dark .settings-overlay {
+  background: radial-gradient(circle at top, rgba(10,12,24,.85), rgba(0,0,0,.7));
+}
+
+.main-menu-card,
+.settings-card {
+  width: min(520px, calc(100vw - 40px));
+  background: rgba(255,255,255,.9);
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+
+body.theme-dark .main-menu-card,
+body.theme-dark .settings-card {
+  background: rgba(10,12,24,.9);
+  border-color: rgba(255,255,255,.14);
+}
+
+.game-title {
+  margin: 0 0 16px 0;
+  font-size: 40px;
+  letter-spacing: 1px;
+}
+
+.main-menu-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.main-menu-actions button,
+.settings-card button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.main-menu-actions .primary {
+  background: #0f1a2b;
+  color: #fff;
+  flex: 1;
+}
+
+.main-menu-actions button:not(.primary),
+.settings-card .secondary {
+  background: rgba(15,26,43,.1);
+  color: #0f1a2b;
+}
+
+body.theme-dark .main-menu-actions button:not(.primary),
+body.theme-dark .settings-card .secondary {
+  background: rgba(255,255,255,.12);
+  color: #e6edf7;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.settings-title {
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.icon-button {
+  background: transparent;
+  color: inherit;
+  border: 1px solid rgba(0,0,0,.18);
+}
+
+body.theme-dark .icon-button {
+  border-color: rgba(255,255,255,.18);
+}
+
+/* 菜单顶部按钮 */
+#menu .danger {
+  background: #b42318;
+  color: #fff;
+}
+
+#menu .danger:hover {
+  background: #8b1d14;
+}
 
 /* 夜间模式整体 */
 body.theme-dark {
@@ -15,8 +137,10 @@ body.theme-dark #hud {
 
 body.theme-dark .resource {
   background: rgba(17,22,40,.9);
-  color: #f5f7ff;
+  color: #ffffff;
 }
+body.theme-dark .resource .label { color: #e8ecf4 }
+body.theme-dark .resource .value { color: #ffffff }
 
 body.theme-dark #menu {
   background: rgba(5,6,14,.96);
@@ -32,11 +156,17 @@ body.theme-dark #menu button:hover {
   background: #d5ddff;
 }
 
-body.theme-dark #menu .menu-title,
-body.theme-dark #menu label,
-body.theme-dark #menu span {
-  color: #e6edf7;
+/* 白天模式下菜单文字显示为白色 */
+
+/* 暗色主题下菜单文字使用深色（除了空闲行为概率模块） */
+
+/* 黑夜模式下空闲行为概率模块文字显示为纯白色，登出按钮保持原有颜色 */
+body.theme-dark #menu .idle-section .menu-title,
+body.theme-dark #menu .idle-section label,
+body.theme-dark #menu .idle-section span {
+  color: #ffffff;
 }
+
 
 body.theme-dark .page-content {
   scrollbar-width: thin;
@@ -79,9 +209,11 @@ body.theme-dark #toast {
   border-color: rgba(255,255,255,.4);
 }
 /* 顶部HUD固定，右侧占满，避开左侧建造栏 */
-#hud { position: fixed; top: 0; left: 240px; right: 0; height: 56px; display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: rgba(255,255,255,.85); border-bottom: 1px solid rgba(0,0,0,.1); backdrop-filter: saturate(120%) blur(8px) }
-.resource { display: flex; gap: 6px; align-items: center; background: rgba(255,255,255,.6); color: #0f1a2b; padding: 6px 10px; border-radius: 6px; font-weight: 600 }
+#hud { position: fixed; top: 0; left: var(--sidebar-width); right: 0; height: var(--hud-height); display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: rgba(255,255,255,.88); border-bottom: 1px solid rgba(0,0,0,.1); backdrop-filter: saturate(120%) blur(8px) }
+.resource { display: flex; gap: 6px; align-items: center; background: rgba(255,255,255,.78); color: #0a0f1a; padding: 6px 10px; border-radius: 8px; font-weight: 700; box-shadow: 0 6px 18px rgba(0,0,0,.08) }
 .resource .icon { font-size: 1.2em; line-height: 1; display: inline-block }
+.resource .label { opacity: .95; white-space: nowrap; color: #0a0f1a }
+.resource .value { white-space: nowrap; font-weight: 800; color: #0a0f1a; font-variant-numeric: tabular-nums }
 /* 经验进度条样式 */
 .exp-resource { gap: 8px }
 .exp-container { display: flex; align-items: center; gap: 8px; flex: 1 }
@@ -93,12 +225,19 @@ body.theme-dark .exp-bar-fill {
   background: linear-gradient(90deg, #e57373 0%, #ffb74d 100%);
   transition: width 0.3s ease, background 0.3s ease;
 }
+/* 英文更紧凑，避免资源栏挤压 */
+body.lang-en #hud { gap: 8px; padding: 8px 10px }
+body.lang-en .resource { padding: 5px 8px; font-size: 13px }
+body.lang-en .resource .icon { font-size: 1.05em }
+body.lang-en .exp-text { min-width: 74px }
 /* 左侧建造侧栏 */
 #menu { 
   position: fixed; 
   top: 0; 
   left: 0; 
-  width: 240px; 
+  width: var(--sidebar-width); 
+  min-width: 200px;
+  max-width: 520px;
   height: 100vh; 
   padding: 10px; 
   display: flex; 
@@ -109,15 +248,70 @@ body.theme-dark .exp-bar-fill {
   overflow-y: auto;
   overflow-x: hidden;
 }
-#menu button { background: #0f1a2b; color: #e6e6e6; border: none; border-radius: 8px; padding: 10px 12px; cursor: pointer; text-align: left; font-weight: 600; transition: background .2s ease, color .2s ease, transform .08s ease; display: flex; align-items: center; gap: 6px }
+#menu { padding-right: 14px }
+
+.sidebar-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 100%;
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+  z-index: 50;
+}
+.sidebar-resizer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 5px;
+  width: 2px;
+  height: 100%;
+  background: rgba(0,0,0,.10);
+}
+body.theme-dark .sidebar-resizer::after { background: rgba(255,255,255,.14) }
+
+body.resizing-sidebar {
+  cursor: ew-resize;
+  user-select: none;
+}
+
+#menu button { background: #0f1a2b; color: #ffffff; border: none; border-radius: 8px; padding: 10px 12px; cursor: pointer; text-align: left; font-weight: 700; letter-spacing: .2px; transition: background .2s ease, color .2s ease, transform .08s ease, filter .2s ease; display: flex; align-items: center; gap: 6px; text-shadow: 0 1px 0 rgba(0,0,0,.25) }
 #menu button::before { content: ''; display: none } /* 移除默认的before伪元素 */
-#menu button:hover { background: #163254 }
+#menu button:hover { background: #163254; filter: brightness(1.03) }
 #menu button:disabled { opacity: 0.5; cursor: not-allowed }
+.menu-top { display: flex; gap: 8px; align-items: center }
+.menu-top #logout { flex: 0 0 auto }
+.menu-top #theme-toggle { flex: 1 1 auto }
 /* 翻页标签 */
-.page-tabs { display: flex; gap: 4px; margin-bottom: 10px; border-bottom: 2px solid rgba(0,0,0,.1) }
-.page-tab { flex: 1; background: rgba(0,0,0,.1); color: #0f1a2b; border: none; border-radius: 6px 6px 0 0; padding: 8px; cursor: pointer; font-weight: 600; transition: all .2s }
-.page-tab.active { background: #0f1a2b; color: #e6e6e6 }
-.page-tab:hover:not(.active) { background: rgba(0,0,0,.2) }
+.page-tabs { display: flex; gap: 6px; margin-bottom: 10px; border-bottom: 2px solid rgba(0,0,0,.1); flex-wrap: wrap; justify-content: center }
+#menu .page-tab {
+  flex: 1 1 30%;
+  background: rgba(0,0,0,.08);
+  color: #0f1a2b;
+  border: none;
+  border-radius: 10px;
+  min-height: 38px;
+  padding: 0 8px;
+  cursor: pointer;
+  font-weight: 800;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  box-shadow: none;
+  text-shadow: none;
+  white-space: nowrap;
+}
+#menu .page-tab .icon { opacity: .95; display: inline-flex; align-items: center; justify-content: center; line-height: 1; flex: 0 0 auto }
+#menu .page-tab span[data-i18n] { display: inline-flex; align-items: center; justify-content: center; line-height: 1.1; text-align: center; flex: 0 1 auto }
+#menu .page-tab.active { background: #0f1a2b; color: #ffffff }
+#menu .page-tab:hover:not(.active) { background: rgba(0,0,0,.14) }
+body.theme-dark #menu .page-tab { background: rgba(255,255,255,.10); color: #e6edf7 }
+body.theme-dark #menu .page-tab.active { background: #f5f7ff; color: #050814 }
 /* 页面内容 */
 .page-content { 
   display: none; 
@@ -140,18 +334,19 @@ body.theme-dark .exp-bar-fill {
 #menu .menu-title { font-weight: 700; color: #0f1a2b; margin: 6px 0 }
 #menu label { display: flex; align-items: center; gap: 8px; color: #0f1a2b; font-weight: 600 }
 #menu input[type="range"] { flex: 1 }
-#menu span { width: 40px; text-align: right; color: #163254 }
+/* 只给滑块右侧的百分比数值使用固定宽度与深色字，避免覆盖深色按钮上的白字 */
+#menu label > span[id$='-val'] { width: 40px; text-align: right; color: #163254 }
 /* 画布区域避开左侧与顶部 */
-#canvas-container { position: absolute; left: 240px; top: 56px; right: 0; bottom: 0 }
+#canvas-container { position: absolute; left: var(--sidebar-width); top: var(--hud-height); right: 0; bottom: 0 }
 canvas { display: block; width: 100%; height: 100% }
 .panel { position: absolute; right: 10px; top: 10px; background: rgba(23,24,29,.15); padding: 10px; border-radius: 6px }
-#toast { position: fixed; bottom: 20px; left: calc(240px + (100% - 240px) / 2); transform: translateX(-50%); background: rgba(15,26,43,.9); color: #e6e6e6; padding: 10px 14px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.35); display: none; font-weight: 600; border: 1px solid rgba(255,255,255,.2); z-index: 10001 }
+#toast { position: fixed; bottom: 20px; left: calc(var(--sidebar-width) + (100% - var(--sidebar-width)) / 2); transform: translateX(-50%); background: rgba(15,26,43,.9); color: #e6e6e6; padding: 10px 14px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.35); display: none; font-weight: 600; border: 1px solid rgba(255,255,255,.2); z-index: 10001 }
 
 /* 游戏提示语遮罩层 */
 .tutorial-overlay {
   position: fixed;
-  top: 56px;
-  left: 240px;
+  top: var(--hud-height);
+  left: var(--sidebar-width);
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.25);

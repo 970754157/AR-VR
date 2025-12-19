@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { t } from './i18n.js'
 
 // 输入处理相关功能
 export class InputHandler {
@@ -27,15 +28,15 @@ export class InputHandler {
         if (intersects.length > 0) {
           const assigned = this.game.assignDemolishWork(struct)
           if (assigned) {
-            this.ui.toast('已分配工人拆除建筑')
+            this.ui.toast(t('msg.demolishAssigned'))
             this.game.state.pendingDemolish = false
           } else {
-            this.ui.toast('没有空闲工人')
+            this.ui.toast(t('msg.noIdleWorkers'))
           }
           return
         }
       }
-      this.ui.toast('请点击要删除的建筑')
+      this.ui.toast(t('msg.demolishHint'))
       return
     }
     
@@ -61,7 +62,7 @@ export class InputHandler {
         { x: targetPos.x, y: targetPos.y, z: targetPos.z }
       ).then(path => {
         this.playerController.setTarget(clickedGold, path)
-        this.ui.toast('正在前往金矿...')
+        this.ui.toast(t('msg.goingTo', { name: t('poi.goldMine') }))
       })
       return
     }
@@ -88,7 +89,7 @@ export class InputHandler {
         { x: targetPos.x, y: targetPos.y, z: targetPos.z }
       ).then(path => {
         this.playerController.setTarget(clickedRock, path)
-        this.ui.toast('正在前往石山...')
+        this.ui.toast(t('msg.goingTo', { name: t('poi.rock') }))
       })
       return
     }
@@ -115,7 +116,7 @@ export class InputHandler {
         { x: targetPos.x, y: targetPos.y, z: targetPos.z }
       ).then(path => {
         this.playerController.setTarget(clickedTree, path)
-        this.ui.toast('正在前往树木...')
+        this.ui.toast(t('msg.goingTo', { name: t('poi.tree') }))
       })
       return
     }
@@ -138,7 +139,7 @@ export class InputHandler {
       const playerPos = this.playerController.getPlayer().position
       const followed = this.game.makeCatFollow(clickedCat, playerPos)
       if (followed) {
-        this.ui.toast('小猫开始跟随你了！')
+        this.ui.toast(t('msg.catFollow'))
       }
       return
     }
@@ -176,9 +177,8 @@ export class InputHandler {
       
       this.game.makeAnimalRun(clickedAnimal, targetPos)
       
-      const animalNames = { sheep: '小羊', pig: '小猪', cow: '小牛' }
-      const animalName = animalNames[clickedAnimal.userData.type] || clickedAnimal.userData.type
-      this.ui.toast(`${animalName}被吓跑了！`)
+      const name = t(`animal.${clickedAnimal.userData.type}`) || clickedAnimal.userData.type
+      this.ui.toast(t('msg.animalRan', { name }))
       return
     }
     
@@ -201,14 +201,12 @@ export class InputHandler {
     if (clickedCrop) {
       const harvested = this.game.harvestCrop(clickedCrop)
       if (harvested) {
-        const cropNames = { carrot: '胡萝卜', watermelon: '西瓜', grape: '葡萄' }
-        const cropName = cropNames[clickedCrop.userData.type] || clickedCrop.userData.type
+        const cropName = t(`crop.${clickedCrop.userData.type}`) || clickedCrop.userData.type
         const foodReward = this.game.state.getFoodReward()
-        this.ui.toast(`收获${cropName}，获得 ${foodReward} 食物`)
+        this.ui.toast(t('msg.harvested', { name: cropName, amount: foodReward }))
       } else {
-        const cropNames = { carrot: '胡萝卜', watermelon: '西瓜', grape: '葡萄' }
-        const cropName = cropNames[clickedCrop.userData.type] || clickedCrop.userData.type
-        this.ui.toast(`${cropName}还未成熟`)
+        const cropName = t(`crop.${clickedCrop.userData.type}`) || clickedCrop.userData.type
+        this.ui.toast(t('msg.notMature', { name: cropName }))
       }
       return
     }
@@ -235,12 +233,11 @@ export class InputHandler {
       if (this.game.state.pendingPlant) {
         const planted = this.game.plantCrop(clickedFarm, this.game.state.pendingCropType)
         if (planted) {
-          const cropNames = { carrot: '胡萝卜', watermelon: '西瓜', grape: '葡萄' }
-          const cropName = cropNames[this.game.state.pendingCropType] || this.game.state.pendingCropType
-          this.ui.toast(`已种植${cropName}`)
+          const cropName = t(`crop.${this.game.state.pendingCropType}`) || this.game.state.pendingCropType
+          this.ui.toast(t('msg.planted', { name: cropName }))
           this.game.state.pendingPlant = false
         } else {
-          this.ui.toast('该农田已有农作物或未解锁')
+          this.ui.toast(t('msg.plantFailed'))
         }
         return
       } else {
@@ -255,7 +252,7 @@ export class InputHandler {
           { x: targetPos.x, y: targetPos.y, z: targetPos.z }
         ).then(path => {
           this.playerController.setTarget(clickedFarm, path)
-          this.ui.toast('正在前往农田...')
+          this.ui.toast(t('msg.goingTo', { name: t('building.farm') }))
         })
         return
       }
@@ -267,7 +264,7 @@ export class InputHandler {
         // 检查资源：10金币10食物
         const animalCost = { gold: 10, food: 10 }
         if (!this.game.state.resources.has(animalCost)) {
-          this.ui.toast('资源不足：需要10金币和10食物')
+          this.ui.toast(t('msg.animalCostNotEnough'))
           // 资源不足时不取消模式，允许玩家补充资源后继续放置
           return
         }
@@ -286,14 +283,13 @@ export class InputHandler {
         if (animal) {
           this.game.scene.add(animal)
           this.game.state.animals.push(animal)
-          const animalNames = { sheep: '小羊', pig: '小猪', cow: '小牛' }
-          const animalName = animalNames[this.game.state.pendingAnimalType] || this.game.state.pendingAnimalType
-          this.ui.toast(`已放置${animalName}`)
+          const animalName = t(`animal.${this.game.state.pendingAnimalType}`) || this.game.state.pendingAnimalType
+          this.ui.toast(t('msg.animalPlaced', { name: animalName }))
           
           // 获得经验奖励
           const leveledUp = this.game.state.addPlayerExp(this.game.state.getExpReward())
           if (leveledUp) {
-            this.ui.toast(`玩家升级到 ${this.game.state.playerLevel} 级！解锁新建筑！`)
+            this.ui.toast(t('msg.levelUp', { level: this.game.state.playerLevel }))
             if (this.game.onLevelUp) this.game.onLevelUp()
           }
           
@@ -308,12 +304,11 @@ export class InputHandler {
     if (inter && inter.point) {
       const ok = this.game.addFoundationAt(inter.point, this.game.state.pendingType)
       if (ok) { 
-        this.ui.toast('已安置地基')
+        this.ui.toast(t('msg.foundationPlaced'))
         this.game.state.pendingBuild = false
       } else { 
-        this.ui.toast('资源不足')
+        this.ui.toast(t('msg.resourceNotEnough'))
       }
     }
   }
 }
-

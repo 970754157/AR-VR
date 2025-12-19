@@ -26,7 +26,7 @@ export class GameState {
     this.playerLevel = config.playerLevel ?? 1
     this.playerExp = config.playerExp ?? 0
     // 玩家名字
-    this.playerName = config.playerName ?? '未命名'
+    this.playerName = config.playerName ?? ''
     // 解锁顺序：每级解锁一种建筑、一种动物、一种植物
     // 1级：farm, carrot, sheep
     // 2级：school, watermelon, pig

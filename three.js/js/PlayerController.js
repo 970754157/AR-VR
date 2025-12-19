@@ -14,6 +14,11 @@ export class PlayerController {
     this.cameraSys.setPlayerPosition(this.player.position)
     
     this.pet = null // 宠物对象
+    this.petPath = null
+    this.petPathIndex = 0
+    this._petLastTarget = null
+    this._petRepathCooldown = 0
+    this._petPathPending = false
     
     this.movement = {
       forward: 0,
@@ -190,21 +195,58 @@ export class PlayerController {
       const targetX = this.player.position.x + backX
       const targetZ = this.player.position.z + backZ
       const targetPos = new THREE.Vector3(targetX, this.player.position.y, targetZ)
-      
-      const dist = this.pet.position.distanceTo(targetPos)
+
+      this._petRepathCooldown = Math.max(0, this._petRepathCooldown - dt)
+      const distToTarget = this.pet.position.distanceTo(targetPos)
+
+      const targetMoved =
+        !this._petLastTarget ||
+        this._petLastTarget.distanceToSquared(targetPos) > 0.75 * 0.75
+
+      const needRepath =
+        distToTarget > 2 &&
+        (targetMoved || !this.petPath || this.petPathIndex >= (this.petPath?.length || 0))
+
+      if (needRepath && !this._petPathPending && this._petRepathCooldown <= 0) {
+        this._petPathPending = true
+        this._petRepathCooldown = 0.4
+        const start = { x: this.pet.position.x, y: 0.7, z: this.pet.position.z }
+        const end = { x: targetPos.x, y: targetPos.y, z: targetPos.z }
+        this.game.ai.findPathAStar(start, end).then(path => {
+          this._petPathPending = false
+          if (!Array.isArray(path) || path.length === 0) return
+          this.petPath = path
+          this.petPathIndex = 0
+          this._petLastTarget = targetPos.clone()
+        }).catch(() => {
+          this._petPathPending = false
+        })
+      }
+
+      let steeringTarget = null
+      if (this.petPath && this.petPath.length > 0 && this.petPathIndex < this.petPath.length) {
+        const p = this.petPath[Math.min(this.petPathIndex, this.petPath.length - 1)]
+        steeringTarget = new THREE.Vector3(p.x, p.y ?? 0.7, p.z)
+        if (this.pet.position.distanceTo(steeringTarget) < 0.35) {
+          this.petPathIndex++
+        }
+      } else {
+        steeringTarget = targetPos
+      }
+
+      const dist = this.pet.position.distanceTo(steeringTarget)
       if (dist > 0.1) {
-        // 速度是玩家的一半
         const speed = this.playerSpeed * 0.5
         const moveDist = Math.min(dist, speed * dt)
-        
-        const dir = targetPos.clone().sub(this.pet.position).normalize()
-        this.pet.position.add(dir.multiplyScalar(moveDist))
-        this.pet.position.y = 0.7 + Math.sin(Date.now() * 0.015) * 0.05 // 简单的浮动动画
-        
-        // 面向移动方向
+
+        const dir = steeringTarget.clone().sub(this.pet.position).normalize()
+        dir.y = 0
+        if (dir.lengthSq() > 0) {
+          this.pet.position.add(dir.multiplyScalar(moveDist))
+        }
+        this.pet.position.y = 0.7 + Math.sin(Date.now() * 0.015) * 0.05
+
         if (moveDist > 0.001) {
-          // 模型本身的朝向可能需要修正（如果模型默认朝向不是+Z）
-          // 这里假设模型默认朝向是+X，所以需要减去90度（Math.PI/2）或者加上90度
           const targetRot = Math.atan2(dir.x, dir.z) + Math.PI / 2
           let rotDiff = targetRot - this.pet.rotation.y
           while (rotDiff > Math.PI) rotDiff -= Math.PI * 2
@@ -212,13 +254,10 @@ export class PlayerController {
           this.pet.rotation.y += rotDiff * dt * 5
         }
       } else {
-        // 停止时也要保持浮动
         this.pet.position.y = 0.7 + Math.sin(Date.now() * 0.005) * 0.02
-        
-        // 停止时，宠物面向玩家
+
         const dx = this.player.position.x - this.pet.position.x
         const dz = this.player.position.z - this.pet.position.z
-        // 同样修正朝向：目标角度 + 90度
         const targetRot = Math.atan2(dx, dz) + Math.PI / 2
         let rotDiff = targetRot - this.pet.rotation.y
         while (rotDiff > Math.PI) rotDiff -= Math.PI * 2

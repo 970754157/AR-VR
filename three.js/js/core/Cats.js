@@ -1,5 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.164.0/build/three.module.js'
 import { OBJLoader } from 'https://unpkg.com/three@0.164.0/examples/jsm/loaders/OBJLoader.js'
+import { t } from '../i18n.js'
 
 /**
  * 小猫管理类
@@ -27,6 +28,14 @@ export class Cats {
     this.maxCats = 20
     // 初始化时异步加载小猫模型
     this.loadModels()
+  }
+
+  /**
+   * 设置UI引用，用于显示提示消息
+   * @param {Object} ui - UI对象
+   */
+  setUI(ui) {
+    this.ui = ui
   }
 
   /**
@@ -239,31 +248,65 @@ export class Cats {
           // 已到达目标位置，保持浮动
           cat.position.y = 0.7 + Math.sin(Date.now() * 0.005) * 0.02
           
-          // 到达目标位置后，有50%概率逃跑
+          // 到达目标位置后，决定是逃跑还是获得奖励
           if (!cat.userData.escapeChecked) {
             cat.userData.escapeChecked = true
             if (Math.random() < 0.5) {
-              // 扣除10金币
-              const stolenGold = 10
-              if (this.game.state.resources.gold >= stolenGold) {
-                this.game.state.resources.consume({ gold: stolenGold })
-                this.game.notify('小猫偷走你的10块钱！')
+              // 逃跑：随机偷走四种资源中的一种
+              const stealableResources = [
+                { type: 'stone', amount: 10, nameKey: 'resource.stone' },
+                { type: 'wood', amount: 10, nameKey: 'resource.wood' },
+                { type: 'food', amount: 10, nameKey: 'resource.food' },
+                { type: 'gold', amount: 10, nameKey: 'resource.gold' }
+              ]
+
+              const randomSteal = stealableResources[Math.floor(Math.random() * stealableResources.length)]
+
+              // 检查玩家是否有足够的资源
+              const currentAmount = this.game.state.resources[randomSteal.type]
+              if (currentAmount >= randomSteal.amount) {
+                // 偷走指定数量
+                this.game.state.resources.consume({ [randomSteal.type]: randomSteal.amount })
+                this.ui.toast(t('msg.catStoleResource', { amount: randomSteal.amount + ' ' + t(randomSteal.nameKey) }))
+              } else if (currentAmount > 0) {
+                // 偷走所有剩余资源
+                this.game.state.resources.consume({ [randomSteal.type]: currentAmount })
+                this.ui.toast(t('msg.catStoleResource', { amount: currentAmount + ' ' + t(randomSteal.nameKey) }))
               } else {
-                // 如果金币不足，扣除所有金币
-                const actualGold = this.game.state.resources.gold
-                if (actualGold > 0) {
-                  this.game.state.resources.consume({ gold: actualGold })
-                  this.game.notify(`小猫偷走你的${actualGold}块钱！`)
-                } else {
-                  this.game.notify('小猫逃跑了！')
-                }
+                // 没有资源，显示逃跑消息
+                this.ui.toast(t('msg.catEscaped'))
               }
-              
+
               // 从场景中移除小猫
               this.game.scene.remove(cat)
               // 从列表中删除
               this.cats.splice(i, 1)
               continue
+            } else {
+              // 不逃跑：获得奖励
+              const rewards = [
+                { type: 'food', amount: 15 },
+                { type: 'wood', amount: 15 },
+                { type: 'stone', amount: 15 },
+                { type: 'gold', amount: 15 },
+                { type: 'exp', amount: 5 }
+              ]
+
+              const randomReward = rewards[Math.floor(Math.random() * rewards.length)]
+
+              if (randomReward.type === 'exp') {
+                // 获得经验奖励
+                const leveledUp = this.game.state.addPlayerExp(randomReward.amount)
+                this.ui.toast(t('msg.catReward', { amount: randomReward.amount, resource: t('resource.exp') }))
+                if (leveledUp) {
+                  this.ui.toast(t('msg.levelUp', { level: this.game.state.playerLevel }))
+                  if (this.game.onLevelUp) this.game.onLevelUp()
+                }
+              } else {
+                // 获得资源奖励
+                this.game.state.resources.add({ [randomReward.type]: randomReward.amount })
+                this.ui.toast(t('msg.catReward', { amount: randomReward.amount, resource: t('resource.' + randomReward.type) }))
+              }
             }
           }
           

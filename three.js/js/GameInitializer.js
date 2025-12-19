@@ -33,7 +33,9 @@ export class GameInitializer {
       if (resp.ok) config = await resp.json()
     } catch {}
     
-    const game = new Game(this.scene, config, this.cameraSys.getCamera(), (msg) => this.ui.toast(msg))
+    const game = new Game(this.scene, config, this.cameraSys.getCamera(), (msg) => {
+      if (this.ui) this.ui.toast(msg)
+    })
     const ui = new UI(document)
     
     return { game, ui }

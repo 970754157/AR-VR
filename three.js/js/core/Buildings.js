@@ -1,4 +1,5 @@
 import * as THREE from 'https://unpkg.com/three@0.164.0/build/three.module.js'
+import { t } from '../i18n.js'
 import { OBJLoader } from 'https://unpkg.com/three@0.164.0/examples/jsm/loaders/OBJLoader.js'
 
 // 建筑创建相关功能
@@ -706,17 +707,8 @@ export class Buildings {
   addFoundationAt(point, buildType = 'castle') {
     if (!this.game.state.isBuildingUnlocked(buildType)) {
       const requiredLevel = this.game.state.getBuildingRequiredLevel(buildType)
-      const buildingNames = {
-        'farm': '农田',
-        'school': '学校',
-        'library': '图书馆',
-        'castle': '城堡',
-      'wall': '城墙',
-      'road': '道路',
-      'river': '河流'
-      }
-      const buildingName = buildingNames[buildType] || buildType
-      this.game.notify(`${buildingName}需要等级 ${requiredLevel} 才能解锁（当前等级：${this.game.state.playerLevel}）`)
+      const buildingName = t(`building.${buildType}`) || buildType
+      this.game.notify(t('msg.needLevel', { name: buildingName, required: requiredLevel, current: this.game.state.playerLevel }))
       return false
     }
     const configs = {
@@ -761,4 +753,3 @@ export class Buildings {
     return true
   }
 }
-

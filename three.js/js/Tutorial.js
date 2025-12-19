@@ -1,4 +1,5 @@
 // 教程系统
+import { t } from './i18n.js'
 export class Tutorial {
   constructor(game, ui) {
     this.game = game
@@ -11,36 +12,22 @@ export class Tutorial {
     this.tutorialHint = document.getElementById('tutorial-hint')
     
     this.tutorials = [
-      {
-        text: '欢迎来到这个充满神奇生物的小镇<br>首先先起个名字吧',
-        needsInput: true
-      },
-      {
-        text: '按住WASD进行移动',
-        needsInput: false
-      },
-      {
-        text: '使用上下左右键平移相机',
-        needsInput: false
-      },
-      {
-        text: '首先招募工人帮助你建造一片农田吧',
-        needsInput: false
-      },
-      {
-        text: '种植，建造，采集物品都可以获得经验',
-        needsInput: false
-      },
-      {
-        text: '获得更多的经验升级解锁更多物品来探索这个世界吧',
-        needsInput: false
-      }
+      { key: 'tutorial.0', needsInput: true },
+      { key: 'tutorial.1', needsInput: false },
+      { key: 'tutorial.2', needsInput: false },
+      { key: 'tutorial.3', needsInput: false },
+      { key: 'tutorial.4', needsInput: false },
+      { key: 'tutorial.5', needsInput: false }
     ]
     
     this.currentTutorialIndex = 0
     this.tutorialCompleted = false
     
     this.init()
+    
+    window.addEventListener('i18n:change', () => {
+      this.refresh()
+    })
   }
 
   init() {
@@ -74,7 +61,7 @@ export class Tutorial {
     }
     
     const tutorial = this.tutorials[index]
-    this.tutorialText.innerHTML = tutorial.text
+    this.tutorialText.innerHTML = t(tutorial.key)
     
     if (tutorial.needsInput) {
       this.tutorialInputContainer.style.display = 'flex'
@@ -94,7 +81,7 @@ export class Tutorial {
         this.currentTutorialIndex++
         this.showTutorial(this.currentTutorialIndex)
       } else {
-        this.ui.toast('名字不能为空')
+        this.ui.toast(t('tutorial.nameEmpty'))
       }
     } else {
       this.currentTutorialIndex++
@@ -102,8 +89,12 @@ export class Tutorial {
     }
   }
 
+  refresh() {
+    if (this.tutorialCompleted) return
+    this.showTutorial(this.currentTutorialIndex)
+  }
+
   isCompleted() {
     return this.tutorialCompleted
   }
 }
-

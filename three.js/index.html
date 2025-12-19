@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Durham Castle Builder</title>
+  <title>缓慢的城镇 | Slow Town</title>
   <link rel="stylesheet" href="style.css">
   <script type="importmap">
     {
@@ -15,17 +15,42 @@
 </head>
 <body>
   <div id="app">
+    <!-- Main menu overlay -->
+    <div id="main-menu" class="main-menu-overlay" role="dialog" aria-modal="true">
+      <div class="main-menu-card">
+        <h1 class="game-title" data-i18n="main.title">缓慢的城镇</h1>
+        <div class="main-menu-actions">
+          <button id="start-game" class="primary" data-i18n="main.start">开始游戏</button>
+          <button id="open-settings" data-i18n="main.settings">设置</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings modal -->
+    <div id="settings-modal" class="settings-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="settings-card">
+        <div class="settings-header">
+          <div class="settings-title" data-i18n="main.settings">设置</div>
+          <button id="close-settings" class="icon-button" aria-label="close" data-i18n="main.close">关闭</button>
+        </div>
+        <div class="settings-row">
+          <div class="settings-label" data-i18n="main.language">语言</div>
+          <button id="lang-toggle" class="secondary">切换到英文</button>
+        </div>
+      </div>
+    </div>
+
     <div id="hud">
-      <div class="resource"><span class="icon">👤</span><span>玩家</span><span id="player-name">未命名</span></div>
-      <div class="resource"><span class="icon">🪨</span><span>石材</span><span id="res-stone">0</span></div>
-      <div class="resource"><span class="icon">🪵</span><span>木材</span><span id="res-wood">0</span></div>
-      <div class="resource"><span class="icon">🍎</span><span>食物</span><span id="res-food">0</span></div>
-      <div class="resource"><span class="icon">💰</span><span>金钱</span><span id="res-gold">0</span></div>
-      <div class="resource"><span class="icon">👷</span><span>工匠</span><span id="res-workers">0</span></div>
-      <div class="resource"><span class="icon">⚡</span><span>速度</span><span id="game-speed">1x</span></div>
-      <div class="resource"><span class="icon">⭐</span><span>等级</span><span id="player-level">1</span></div>
+      <div class="resource"><span class="icon">👤</span><span class="label" data-i18n="hud.player">玩家</span><span class="value" id="player-name" data-i18n="hud.unnamed">未命名</span></div>
+      <div class="resource"><span class="icon">🪨</span><span class="label" data-i18n="hud.stone">石材</span><span class="value" id="res-stone">0</span></div>
+      <div class="resource"><span class="icon">🪵</span><span class="label" data-i18n="hud.wood">木材</span><span class="value" id="res-wood">0</span></div>
+      <div class="resource"><span class="icon">🍎</span><span class="label" data-i18n="hud.food">食物</span><span class="value" id="res-food">0</span></div>
+      <div class="resource"><span class="icon">💰</span><span class="label" data-i18n="hud.gold">金钱</span><span class="value" id="res-gold">0</span></div>
+      <div class="resource"><span class="icon">👷</span><span class="label" data-i18n="hud.workers">工匠</span><span class="value" id="res-workers">0</span></div>
+      <div class="resource"><span class="icon">⚡</span><span class="label" data-i18n="hud.speed">速度</span><span class="value" id="game-speed">1x</span></div>
+      <div class="resource"><span class="icon">⭐</span><span class="label" data-i18n="hud.level">等级</span><span class="value" id="player-level">1</span></div>
       <div class="resource exp-resource">
-        <span class="icon">✨</span><span>经验</span>
+        <span class="icon">✔</span><span class="label" data-i18n="hud.exp">经验</span>
         <div class="exp-container">
           <div class="exp-bar">
             <div class="exp-bar-fill" id="exp-bar-fill"></div>
@@ -34,78 +59,82 @@
         </div>
       </div>
     </div>
+
     <div id="menu">
-      <button id="theme-toggle">🌙 切换为夜间模式</button>
-      
-      <!-- 翻页按钮 -->
+      <div class="menu-top">
+        <button id="logout" class="danger" data-i18n="main.logout">登出</button>
+        <button id="theme-toggle">🌙 切换为夜间模式</button>
+      </div>
+      <div id="sidebar-resizer" class="sidebar-resizer" aria-hidden="true"></div>
+
       <div class="page-tabs">
-        <button class="page-tab active" data-page="buildings">🏗️ 建筑</button>
-        <button class="page-tab" data-page="crops">🌾 农作物</button>
-        <button class="page-tab" data-page="animals">🐾 动物</button>
+        <button class="page-tab active" data-page="buildings"><span class="icon">🏗️</span><span data-i18n="menu.tab.buildings">建筑</span></button>
+        <button class="page-tab" data-page="crops"><span class="icon">🌾</span><span data-i18n="menu.tab.crops">农作物</span></button>
+        <button class="page-tab" data-page="animals"><span class="icon">🐾</span><span data-i18n="menu.tab.animals">动物</span></button>
       </div>
-      
-      <!-- 建筑页面 -->
+
       <div class="page-content active" data-page="buildings">
-        <button id="build-farm">🌾 建造农田地基</button>
-        <button id="build-school">🏫 建造学校地基</button>
-        <button id="build-library">📚 建造图书馆地基</button>
-        <button id="build-wall">🧱 建造城墙地基</button>
-        <button id="build-road">🛣️ 建造道路地基</button>
-        <button id="build-river">🌊 建造河流地基</button>
-        <button id="build-castle">🏰 建造城堡地基</button>
+        <button id="build-farm"><span class="icon">🌾</span><span data-i18n="menu.build.farm">建造农田地基</span></button>
+        <button id="build-school"><span class="icon">🏫</span><span data-i18n="menu.build.school">建造学校地基</span></button>
+        <button id="build-library"><span class="icon">📚</span><span data-i18n="menu.build.library">建造图书馆地基</span></button>
+        <button id="build-wall"><span class="icon">🧱</span><span data-i18n="menu.build.wall">建造城墙地基</span></button>
+        <button id="build-road"><span class="icon">🛣️</span><span data-i18n="menu.build.road">建造道路地基</span></button>
+        <button id="build-river"><span class="icon">🌊</span><span data-i18n="menu.build.river">建造河流地基</span></button>
+        <button id="build-castle"><span class="icon">🏰</span><span data-i18n="menu.build.castle">建造城堡地基</span></button>
       </div>
-      
-      <!-- 农作物页面 -->
+
       <div class="page-content" data-page="crops">
-        <button id="plant-carrot">🥕 种植胡萝卜</button>
-        <button id="plant-watermelon">🍉 种植西瓜</button>
-        <button id="plant-grape">🍇 种植葡萄</button>
+        <button id="plant-carrot"><span class="icon">🥕</span><span data-i18n="menu.plant.carrot">种植胡萝卜</span></button>
+        <button id="plant-watermelon"><span class="icon">🍉</span><span data-i18n="menu.plant.watermelon">种植西瓜</span></button>
+        <button id="plant-grape"><span class="icon">🍇</span><span data-i18n="menu.plant.grape">种植葡萄</span></button>
       </div>
-      
-      <!-- 动物页面 -->
+
       <div class="page-content" data-page="animals">
-        <button id="spawn-sheep">🐑 放置小羊</button>
-        <button id="spawn-pig">🐷 放置小猪</button>
-        <button id="spawn-cow">🐄 放置小牛</button>
+        <button id="spawn-sheep"><span class="icon">🐑</span><span data-i18n="menu.spawn.sheep">放置小羊</span></button>
+        <button id="spawn-pig"><span class="icon">🐷</span><span data-i18n="menu.spawn.pig">放置小猪</span></button>
+        <button id="spawn-cow"><span class="icon">🐄</span><span data-i18n="menu.spawn.cow">放置小牛</span></button>
       </div>
-      
-      <div class="menu-section">
-        <div class="menu-title">🎭 空闲行为概率</div>
-        <label>😴 休息
+
+      <div class="menu-section idle-section">
+        <div class="menu-title"><span class="icon">🎭</span><span data-i18n="menu.idle.title">空闲行为概率</span></div>
+        <label><span class="icon">😴</span><span data-i18n="menu.idle.rest">休息</span>
           <input id="prob-rest" type="range" min="0" max="100" value="33">
           <span id="prob-rest-val">33%</span>
         </label>
-        <label>🎉 欢呼
+        <label><span class="icon">🎉</span><span data-i18n="menu.idle.cheer">欢呼</span>
           <input id="prob-cheer" type="range" min="0" max="100" value="33">
           <span id="prob-cheer-val">33%</span>
         </label>
-        <label>🚶 闲逛
+        <label><span class="icon">🚶</span><span data-i18n="menu.idle.wander">闲逛</span>
           <input id="prob-wander" type="range" min="0" max="100" value="34">
           <span id="prob-wander-val">34%</span>
         </label>
       </div>
-      <button id="spawn-worker">👷 招募工匠</button>
-      <button id="claim-resources">📦 领取材料</button>
-      <button id="demolish-building">🗑️ 删除建筑</button>
-      <button id="speed-1">⚡ 速度1x</button>
-      <button id="speed-2">⚡⚡ 速度2x</button>
-      <button id="speed-4">⚡⚡⚡ 速度4x</button>
+
+      <button id="spawn-worker"><span class="icon">👷</span><span data-i18n="menu.spawnWorker">招募工匠</span></button>
+      <button id="claim-resources"><span class="icon">📦</span><span data-i18n="menu.claim">领取材料</span></button>
+      <button id="demolish-building"><span class="icon">🗑️</span><span data-i18n="menu.demolish">删除建筑</span></button>
+      <button id="speed-1"><span class="icon">⚡</span><span data-i18n="menu.speed.1">速度 1x</span></button>
+      <button id="speed-2"><span class="icon">⚡⚡</span><span data-i18n="menu.speed.2">速度 2x</span></button>
+      <button id="speed-4"><span class="icon">⚡⚡⚡</span><span data-i18n="menu.speed.4">速度 4x</span></button>
     </div>
+
     <div id="canvas-container"></div>
     <div id="toast"></div>
-    
-    <!-- 游戏提示语遮罩层 -->
+
     <div id="tutorial-overlay" class="tutorial-overlay">
       <div class="tutorial-content">
         <div class="tutorial-text" id="tutorial-text"></div>
         <div class="tutorial-input-container" id="tutorial-input-container" style="display: none;">
-          <input type="text" id="player-name-input" placeholder="请输入你的名字" maxlength="20">
-          <button id="confirm-name">确认</button>
+          <input type="text" id="player-name-input" data-i18n-placeholder="tutorial.namePlaceholder" placeholder="请输入你的名字" maxlength="20">
+          <button id="confirm-name" data-i18n="tutorial.confirm">确认</button>
         </div>
-        <div class="tutorial-hint" id="tutorial-hint">点击任意位置继续...</div>
+        <div class="tutorial-hint" id="tutorial-hint" data-i18n="tutorial.hint">点击任意位置继续...</div>
       </div>
     </div>
   </div>
+
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>
+

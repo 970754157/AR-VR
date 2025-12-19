@@ -14,7 +14,7 @@ export class HUD {
       expBarFill: root.querySelector('#exp-bar-fill')
     }
   }
-  update(resources, speed, playerLevel = 1, playerExp = 0, expPerLevel = 10, playerName = '未命名') {
+  update(resources, speed, playerLevel = 1, playerExp = 0, expPerLevel = 10, playerName = '') {
     if (this.ids.playerName) {
       this.ids.playerName.textContent = playerName
     }

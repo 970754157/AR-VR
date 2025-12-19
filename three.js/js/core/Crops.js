@@ -1,4 +1,5 @@
 import * as THREE from 'https://unpkg.com/three@0.164.0/build/three.module.js'
+import { t } from '../i18n.js'
 
 // 农作物相关功能
 export class Crops {
@@ -96,7 +97,8 @@ export class Crops {
     
     if (!this.game.state.isCropUnlocked(cropType)) {
       const requiredLevel = this.game.state.getCropRequiredLevel(cropType)
-      this.game.notify(`${cropType}需要等级 ${requiredLevel} 才能解锁（当前等级：${this.game.state.playerLevel}）`)
+      const cropName = t(`crop.${cropType}`) || cropType
+      this.game.notify(t('msg.needLevel', { name: cropName, required: requiredLevel, current: this.game.state.playerLevel }))
       return false
     }
     
@@ -140,7 +142,7 @@ export class Crops {
     
     const leveledUp = this.game.state.addPlayerExp(this.game.state.getExpReward())
     if (leveledUp) {
-      this.game.notify(`玩家升级到 ${this.game.state.playerLevel} 级！解锁新建筑！`)
+      this.game.notify(t('msg.levelUp', { level: this.game.state.playerLevel }))
       if (this.game.onLevelUp) this.game.onLevelUp()
     }
     
